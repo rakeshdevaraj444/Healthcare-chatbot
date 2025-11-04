@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCare AI Assistant</title>
+    <style>
+        body {
+            background: #f4f7fb;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-box {
+            width: 420px;
+            height: 550px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .msg {
+            margin: 5px 0;
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot {
+            background: #e9ecef;
+            color: #333;
+            align-self: flex-start;
+        }
+        .input-box {
+            display: flex;
+            border-top: 1px solid #ddd;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-box">
+        <div class="messages" id="messages"></div>
+        <div class="input-box">
+            <input id="userInput" type="text" placeholder="Ask a health question..." />
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+    async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const msgBox = document.getElementById("messages");
+        const userMsg = input.value.trim();
+
+        if (!userMsg) return;
+
+        // ✅ Correct syntax using backticks
+        msgBox.innerHTML += `<div class="msg user">${userMsg}</div>`;
+        input.value = "";
+
+        try {
+            const response = await fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userMsg })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.answer) {
+                msgBox.innerHTML += `<div class="msg bot">${data.answer}</div>`;
+            } else {
+                msgBox.innerHTML += `<div class="msg bot">⚠ Error: ${data.detail || "No response from server"}</div>`;
+            }
+
+            msgBox.scrollTop = msgBox.scrollHeight;
+        } catch (error) {
+            msgBox.innerHTML += `<div class="msg bot">⚠ Error: ${error.message}</div>`;
+        }
+    }
+
+    // ✅ Send button click
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+
+    // ✅ Send on Enter key
+    document.getElementById("userInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") sendMessage();
+    });
+</script>
+</body>
+</html>
